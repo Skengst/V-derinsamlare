@@ -69,7 +69,7 @@ def main ():
             sheet = workbook.active
             
             #Repetera 24 gånger för alla värden
-            for timeSeries in range (1,25):
+            for repetition in range (1,25):
                 
                 #Hitta sista raden, +1 så att den inte överskriver
                 sista_rad = sheet.max_row + 1 
@@ -86,7 +86,7 @@ def main ():
                 sheet.cell (row=sista_rad, column=3, value=latitud)
 
                 #validTime i sträng format
-                validTime_str = SMHI_data['timeSeries'][timeSeries]['validTime']
+                validTime_str = SMHI_data['timeSeries'][repetition]['validTime']
                 
                 #Datum    
                 datum = datetime.datetime.strptime(validTime_str, "%Y-%m-%dT%H:%M:%SZ").date()
@@ -103,7 +103,7 @@ def main ():
                 sheet.cell (row=sista_rad, column=5, value=timma)
                 
                 #Nå in i parameterarna
-                for parameters in SMHI_data['timeSeries'][timeSeries]['parameters']:
+                for parameters in SMHI_data['timeSeries'][repetition]['parameters']:
                     #Hitta temperatur
                     if parameters['name'] == 't':
                         #Få ur värdet ur listan
@@ -136,13 +136,14 @@ def main ():
             sheet = workbook.active
             #Skapa stop och start värde för läsningsramen
             läs_stop = sheet.max_row
-            läs_start = läs_stop - 24
+            läs_start = läs_stop - 23
             
             #Printa gällande datum
-            print_datum = sheet.cell (row=läs_start, column=4).value.date()
+            print_datum = sheet.cell (row=läs_start, column=4).value
+            print_datum = datetime.datetime.strftime (print_datum,"%Y-%m-%d")
             print (f"Prognos from SMHI {print_datum}:")
-            #Läs raderna
-            for rad in range (läs_start, läs_stop):
+            #Läs raderna, +1 för stopvärde
+            for rad in range (läs_start, läs_stop+1):
                 #De olika Värdena som ska inkluderas
                 print_timma = sheet.cell (row=rad, column=5).value
                 print_temperatur = sheet.cell (row=rad, column=6).value
