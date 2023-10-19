@@ -11,17 +11,14 @@ import openpyxl as op
 """
 Anteckningar
 Behöver i kolumnerna i excel:
-När den hämtades: Datetime
+När den hämtades: Datetime.now
 longitud: Finns under Geometry, coordinates
 Latitud: Finns under Geometry, coordinates
 Datum = Vilket datum, Ta ur från validTime
-Hour: vilken timme datan gäller. Typ konverta till int, endast timma. Ta från sista nummer i validTime
+Hour: vilken timme datan gäller. 
 Temperatur: Float, t = temperatur
 RainOrSnow: bool, pcat == 0 leder till False, pcat == 1-6 -> True
 provider: Alltid SMHI
-
-
-
 """
 #Skapar excelfilen om den inte finns
 def excel_creation():
@@ -67,7 +64,7 @@ def main ():
             #Ladda xlsx filen med sidan som datan ska ligga på
             workbook = op.load_workbook ('Väder_data.xlsx')
             sheet = workbook.active
-            
+            nutid = datetime.datetime.now()
             #Repetera 24 gånger för alla värden
             for repetition in range (1,25):
                 
@@ -75,7 +72,7 @@ def main ():
                 sista_rad = sheet.max_row + 1 
                 
                 #Skapad
-                sheet.cell (row=sista_rad, column=1, value=datetime.datetime.now())
+                sheet.cell (row=sista_rad, column=1, value=nutid)
 
                 #Longitud
                 longitud = SMHI_data ['geometry']['coordinates'][0][0]
@@ -87,19 +84,14 @@ def main ():
 
                 #validTime i sträng format
                 validTime_str = SMHI_data['timeSeries'][repetition]['validTime']
+                validTime_dt = datetime.datetime.strptime(validTime_str, "%Y-%m-%dT%H:%M:%SZ") + datetime.timedelta(hours=2)
                 
                 #Datum    
-                datum = datetime.datetime.strptime(validTime_str, "%Y-%m-%dT%H:%M:%SZ").date()
+                datum = validTime_dt.date()
                 sheet.cell (row=sista_rad, column=4, value=datum)
                 
                 #Timma
-                timma_utc = datetime.datetime.strptime(validTime_str, "%Y-%m-%dT%H:%M:%SZ").hour
-                #Få bort UTC
-                timma = timma_utc + 2
-                #Om det blir efter midnatt
-                if timma > 24:
-                    timma = timma - 24
-                
+                timma = validTime_dt.hour
                 sheet.cell (row=sista_rad, column=5, value=timma)
                 
                 #Nå in i parameterarna
@@ -155,7 +147,8 @@ def main ():
                     print_nederbörd = "Ingen nederbörd"
                 
                 #Print för terminal
-                print (f"{print_timma}:00 {print_temperatur} Grader {print_nederbörd}")
+                print (f"{print_timma:02}:00 {print_temperatur} Grader {print_nederbörd}")
+                
 
         
         #Avsluta Programmet
